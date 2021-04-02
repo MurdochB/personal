@@ -1,6 +1,7 @@
 package roo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,40 @@ public class Cron {
     command = args[5];
   }
 
+  public String getMinutes() {
+    return parseInput(minute, MINUTE_MIN, MINUTE_MAX);
+  }
+
+  public String getHours() {
+    return parseInput(hour, HOUR_MIN, HOUR_MAX);
+  }
+
+  public String getDayOfMonths() {
+    return parseInput(dayOfMonth, DAY_OF_MONTH_MIN, DAY_OF_MONTH_MAX);
+  }
+
+  public String getMonths() {
+    return parseInput(month, MONTH_MIN, MONTH_MAX);
+  }
+
+  public String getDaysOfWeek() {
+    return parseInput(dayOfWeek, DAY_OF_WEEK_MIN, DAY_OF_WEEK_MAX);
+  }
+
+  public String getCommand() {
+    return command;
+  }
+
+  public void printTable() {
+    // TODO - change this into a nice string formatter
+    System.out.println("minute        " + getMinutes());
+    System.out.println("hour          " + getHours());
+    System.out.println("day of month  " + getDayOfMonths());
+    System.out.println("month         " + getMonths());
+    System.out.println("day of week   " + getDaysOfWeek());
+    System.out.println("command       " + getCommand());
+  }
+
   private String parseInput(String input, int min, int max) {
     List<Integer> values = new ArrayList<>();
 
@@ -50,23 +85,11 @@ public class Cron {
     } else if (input.matches(SINGLE_DIGIT)) {
       values.add(Integer.parseInt(input));
     } else if (input.matches(COMMA_SEP_DIGITS)) {
-      String[] split = input.split(",");
-      for (String s : split) {
-        values.add(Integer.parseInt(s));
-      }
+      values.addAll(getCommaSepValues(input));
     } else if (input.matches(RANGE_DIGITS)) {
-      String[] rangeVals = input.split("-");
-      for (int i = Integer.parseInt(rangeVals[0]); i <= Integer.parseInt(rangeVals[1]); i++) {
-        values.add(i);
-      }
+      values.addAll(getRangeValues(input));
     } else if (input.matches(SLASHED_DIGITS)) {
-      String[] slashVals = input.split("/");
-      if(slashVals[0].equals("*")){
-        slashVals[0] = String.valueOf(min);
-      }
-      for (int i = Integer.parseInt(slashVals[0]); i <= max; i+= Integer.parseInt(slashVals[1])) {
-        values.add(i);
-      }
+      values.addAll(getSlashedValues(input, min, max));
     }
 
     return values.stream()
@@ -74,40 +97,31 @@ public class Cron {
         .collect(Collectors.joining(" "));
   }
 
-  public String getMinutes() {
-    return parseInput(minute, MINUTE_MIN, MINUTE_MAX);
+  private List<Integer> getCommaSepValues(String input) {
+    return Arrays.stream(input.split(","))
+        .map(Integer::parseInt)
+        .collect(Collectors.toList());
   }
 
-  public String getHours() {
-    // Call a method to work out what to render
-    return "hours";
+  private List<Integer> getRangeValues(String input) {
+    List<Integer> values = new ArrayList<>();
+    String[] rangeVals = input.split("-");
+    for (int i = Integer.parseInt(rangeVals[0]); i <= Integer.parseInt(rangeVals[1]); i++) {
+      values.add(i);
+    }
+    return values;
   }
 
-  public String getDayOfMonths() {
-    // Call a method to work out what to render
-    return "day of month";
-  }
-
-  public String getMonths() {
-    // Call a method to work out what to render
-    return "month";
-  }
-
-  public String getDaysOfWeek() {
-    // Call a method to work out what to render
-    return "day of week";
-  }
-
-  public String getCommand() {
-    return "command here";
-  }
-
-  public void printTable() {
-    // TODO - change this into a nice string formatter
-    System.out.println("minute        " + getMinutes());
-    System.out.println("hour          " + getHours());
-    System.out.println("day of month  " + getDayOfMonths());
-    System.out.println("month         " + getMonths());
-    System.out.println("command       " + getCommand());
+  private List<Integer> getSlashedValues(String input, int min, int max) {
+    List<Integer> values = new ArrayList<>();
+    String[] slashVals = input.split("/");
+    if (slashVals[0].equals("*")) {
+      // Starting with a * in a slashed value is the same as starting at the minimum
+      slashVals[0] = String.valueOf(min);
+    }
+    for (int i = Integer.parseInt(slashVals[0]); i <= max; i += Integer.parseInt(slashVals[1])) {
+      values.add(i);
+    }
+    return values;
   }
 }
