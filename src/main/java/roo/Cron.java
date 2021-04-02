@@ -1,6 +1,21 @@
 package roo;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class Cron {
+
+  private static final int MINUTE_MIN = 0;
+  private static final int MINUTE_MAX = 59;
+  private static final int HOUR_MIN = 0;
+  private static final int HOUR_MAX = 23;
+  private static final int DAY_OF_MONTH_MIN = 1;
+  private static final int DAY_OF_MONTH_MAX = 31;
+  private static final int MONTH_MIN = 1;
+  private static final int MONTH_MAX = 12;
+  private static final int DAY_OF_WEEK_MIN = 1;
+  private static final int DAY_OF_WEEK_MAX = 7;
 
   private String minute;
   private String hour;
@@ -19,9 +34,22 @@ public class Cron {
     command = args[5];
   }
 
+  private String parseInput(String input, int min, int max) {
+    List<Integer> values = new ArrayList<>();
+
+    if (input.equals("*")) {
+      for (int i = min; i <= max; i++) {
+        values.add(i);
+      }
+    }
+
+    return values.stream()
+        .map(String::valueOf)
+        .collect(Collectors.joining(" "));
+  }
+
   public String getMinutes() {
-    // Call a method to work out what to render
-    return "mins";
+    return parseInput(minute, MINUTE_MIN, MINUTE_MAX);
   }
 
   public String getHours() {
