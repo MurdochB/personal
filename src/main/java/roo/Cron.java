@@ -17,6 +17,10 @@ public class Cron {
   private static final int DAY_OF_WEEK_MIN = 1;
   private static final int DAY_OF_WEEK_MAX = 7;
 
+  private static final String SINGLE_DIGIT = "[0-9]+";
+  private static final String COMMA_SEP_DIGITS = "[0-9]+(,[0-9]+)+";
+  private static final String RANGE_DIGITS = "[0-9]+-[0-9]+";
+
   private String minute;
   private String hour;
   private String dayOfMonth;
@@ -37,8 +41,21 @@ public class Cron {
   private String parseInput(String input, int min, int max) {
     List<Integer> values = new ArrayList<>();
 
+    // Update this to an enum of types of input
     if (input.equals("*")) {
       for (int i = min; i <= max; i++) {
+        values.add(i);
+      }
+    } else if (input.matches(SINGLE_DIGIT)){
+      values.add(Integer.parseInt(input));
+    } else if (input.matches(COMMA_SEP_DIGITS)) {
+      String[] split = input.split(",");
+      for (String s : split) {
+        values.add(Integer.parseInt(s));
+      }
+    } else if (input.matches(RANGE_DIGITS)) {
+      String[] rangeVals = input.split("-");
+      for (int i = Integer.parseInt(rangeVals[0]); i <= Integer.parseInt(rangeVals[1]); i++) {
         values.add(i);
       }
     }
