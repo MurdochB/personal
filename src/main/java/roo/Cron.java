@@ -20,6 +20,7 @@ public class Cron {
   private static final String SINGLE_DIGIT = "[0-9]+";
   private static final String COMMA_SEP_DIGITS = "[0-9]+(,[0-9]+)+";
   private static final String RANGE_DIGITS = "[0-9]+-[0-9]+";
+  private static final String SLASHED_DIGITS = "([0-9]+|\\*)/[0-9]+";
 
   private String minute;
   private String hour;
@@ -46,7 +47,7 @@ public class Cron {
       for (int i = min; i <= max; i++) {
         values.add(i);
       }
-    } else if (input.matches(SINGLE_DIGIT)){
+    } else if (input.matches(SINGLE_DIGIT)) {
       values.add(Integer.parseInt(input));
     } else if (input.matches(COMMA_SEP_DIGITS)) {
       String[] split = input.split(",");
@@ -56,6 +57,14 @@ public class Cron {
     } else if (input.matches(RANGE_DIGITS)) {
       String[] rangeVals = input.split("-");
       for (int i = Integer.parseInt(rangeVals[0]); i <= Integer.parseInt(rangeVals[1]); i++) {
+        values.add(i);
+      }
+    } else if (input.matches(SLASHED_DIGITS)) {
+      String[] slashVals = input.split("/");
+      if(slashVals[0].equals("*")){
+        slashVals[0] = String.valueOf(min);
+      }
+      for (int i = Integer.parseInt(slashVals[0]); i <= max; i+= Integer.parseInt(slashVals[1])) {
         values.add(i);
       }
     }
