@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 public class Cron {
 
+  private static final String TABLE_FORMAT = "%-14s%s";
+
   private static final int MINUTE_MIN = 0;
   private static final int MINUTE_MAX = 59;
   private static final int HOUR_MIN = 0;
@@ -65,19 +67,18 @@ public class Cron {
   }
 
   public void printTable() {
-    // TODO - change this into a nice string formatter
-    System.out.println("minute        " + getMinutes());
-    System.out.println("hour          " + getHours());
-    System.out.println("day of month  " + getDayOfMonths());
-    System.out.println("month         " + getMonths());
-    System.out.println("day of week   " + getDaysOfWeek());
-    System.out.println("command       " + getCommand());
+    System.out.println(String.format(TABLE_FORMAT, "minute", getMinutes()));
+    System.out.println(String.format(TABLE_FORMAT, "hour", getHours()));
+    System.out.println(String.format(TABLE_FORMAT, "day of month", getDayOfMonths()));
+    System.out.println(String.format(TABLE_FORMAT, "month", getMonths()));
+    System.out.println(String.format(TABLE_FORMAT, "day of week", getDaysOfWeek()));
+    System.out.println(String.format(TABLE_FORMAT, "command", getCommand()));
   }
 
   private String parseInput(String input, int min, int max) {
     List<Integer> values = new ArrayList<>();
 
-    // Update this to an enum of types of input
+    // TODO Update this to an enum of types of input
     if (input.equals("*")) {
       for (int i = min; i <= max; i++) {
         values.add(i);
@@ -91,7 +92,6 @@ public class Cron {
     } else if (input.matches(SLASHED_DIGITS)) {
       values.addAll(getSlashedValues(input, min, max));
     }
-
     return values.stream()
         .map(String::valueOf)
         .collect(Collectors.joining(" "));
