@@ -2,6 +2,7 @@ package roo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +21,7 @@ public class Cron {
   private static final int DAY_OF_WEEK_MIN = 1;
   private static final int DAY_OF_WEEK_MAX = 7;
 
+  private static final String ALL_DIGITS = "\\*";
   private static final String SINGLE_DIGIT = "[0-9]+";
   private static final String COMMA_SEP_DIGITS = "[0-9]+(,[0-9]+)+";
   private static final String RANGE_DIGITS = "[0-9]+-[0-9]+";
@@ -33,7 +35,11 @@ public class Cron {
   private String command;
 
   public Cron(String[] args) {
-    // TODO - validate input
+    if (!validateArguments(args)) {
+      throw new IllegalStateException(
+          "Invalid cron input, cannot be parsed into a cron job. " + Arrays.toString(args));
+    }
+
     minute = args[0];
     hour = args[1];
     dayOfMonth = args[2];
@@ -75,14 +81,42 @@ public class Cron {
     System.out.println(String.format(TABLE_FORMAT, "command", getCommand()));
   }
 
+  private boolean validateArguments(String[] args) {
+    if (args != null && args.length >= 6) {
+      return validateArgument(args[0], MINUTE_MIN, MINUTE_MAX) &&
+          validateArgument(args[1], HOUR_MIN, HOUR_MAX) &&
+          validateArgument(args[2], DAY_OF_MONTH_MIN, DAY_OF_MONTH_MAX) &&
+          validateArgument(args[3], MONTH_MIN, MONTH_MAX) &&
+          validateArgument(args[4], DAY_OF_WEEK_MIN, DAY_OF_WEEK_MAX);
+    }
+    return false;
+  }
+
+  private boolean validateArgument(String arg, int min, int max) {
+    if (arg.matches(ALL_DIGITS)) {
+      return true;
+    } else if (arg.matches(SINGLE_DIGIT)) {
+      int val = Integer.parseInt(arg);
+      return val >= min && val <= max;
+    } else if (arg.matches(COMMA_SEP_DIGITS)) {
+      return valuesAreInMinMaxRange(getCommaSepValues(arg), min, max);
+    } else if (arg.matches(RANGE_DIGITS)) {
+      return valuesAreInMinMaxRange(getRangeValues(arg), min, max);
+    } else if (arg.matches(SLASHED_DIGITS)) {
+      return valuesAreInMinMaxRange(getSlashedValues(arg, min, max), min, max);
+    }
+    return false;
+  }
+
+  private boolean valuesAreInMinMaxRange(List<Integer> values, int min, int max) {
+    return Collections.min(values) >= min && Collections.max(values) <= max;
+  }
+
   private String parseInput(String input, int min, int max) {
     List<Integer> values = new ArrayList<>();
 
-    // TODO Update this to an enum of types of input
-    if (input.equals("*")) {
-      for (int i = min; i <= max; i++) {
-        values.add(i);
-      }
+    if (input.matches(ALL_DIGITS)) {
+      values.addAll(getAllValues(min, max));
     } else if (input.matches(SINGLE_DIGIT)) {
       values.add(Integer.parseInt(input));
     } else if (input.matches(COMMA_SEP_DIGITS)) {
@@ -95,6 +129,14 @@ public class Cron {
     return values.stream()
         .map(String::valueOf)
         .collect(Collectors.joining(" "));
+  }
+
+  private List<Integer> getAllValues(int min, int max) {
+    List<Integer> values = new ArrayList<>();
+    for (int i = min; i <= max; i++) {
+      values.add(i);
+    }
+    return values;
   }
 
   private List<Integer> getCommaSepValues(String input) {

@@ -10,39 +10,90 @@ public class CronTest {
   @Test
   public void testValidArgumentsAreParsed() {
     // Given a set of arguments for a cron are valid
-    String[] validArguements = {"0", "0", "0", "0", "0", "cmd"};
+    String[] validArguments = {"1", "1", "1", "1", "1", "cmd"};
 
     // When a cron is created with the arguments
-    Cron cron = new Cron(validArguements);
+    Cron cron = new Cron(validArguments);
 
     // Then the cron should have the expected values
-    assertThat("Minutes don't match", cron.getMinutes(), is("0"));
-    assertThat("Hours don't match", cron.getHours(), is("0"));
-    assertThat("Day of month don't match", cron.getDayOfMonths(), is("0"));
-    assertThat("Months don't match", cron.getMonths(), is("0"));
-    assertThat("Day of week don't match", cron.getDaysOfWeek(), is("0"));
+    assertThat("Minutes don't match", cron.getMinutes(), is("1"));
+    assertThat("Hours don't match", cron.getHours(), is("1"));
+    assertThat("Day of month don't match", cron.getDayOfMonths(), is("1"));
+    assertThat("Months don't match", cron.getMonths(), is("1"));
+    assertThat("Day of week don't match", cron.getDaysOfWeek(), is("1"));
     assertThat("Command doesn't match", cron.getCommand(), is("cmd"));
   }
 
-  @Test
-  public void testCronWithInvalidArgumentsAreParsed() {
-    // Given a set of arguments for a cron are invalid/inadequate
+  @Test(expected = IllegalStateException.class)
+  public void testNullArguments() {
+    // Given a null argument is used to create a cron job
     String[] nullArgs = null;
+
+    // When the cron is created
+    Cron cron = new Cron(nullArgs);
+
+    // Then a IllegalStateException should be thrown
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testStringArguments() {
+    // Given strings are given as arguments to create a cron job
     String[] stringInput = {"cmd", "cmd", "cmd", "cmd", "cmd", "cmd"};
+
+    // When the cron is created
+    Cron cron = new Cron(stringInput);
+
+    // An IllegalStateException should be thrown
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testArgumentsAreTooSmall() {
+    // Given values that are too small for each field are given as arguments to create a cron job
     String[] tooSmall = {"-1", "-1", "0", "0", "0", ""};
+
+    // When the cron is created
+    Cron cron = new Cron(tooSmall);
+
+    // An IllegalStateException should be thrown
+  }
+
+
+  @Test(expected = IllegalStateException.class)
+  public void testArgumentsAreTooLarge() {
+    // Given values that are too large for each field are given as arguments to create a cron job
     String[] tooLarge = {"60", "24", "32", "13", "8", "cmd"};
+    // When the cron is created
+    Cron cron = new Cron(tooLarge);
+
+    // An IllegalStateException should be thrown
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testTooFewArguments() {
+    // Given too few arguments are given to create a cron job
+
     String[] tooFew = {"0", "0"};
-    String[] tooMany = {"0", "0", "0", "0", "0", "cmd", "cmd2"};
+    // When the cron is created
+    Cron cron = new Cron(tooFew);
 
-    // When a cron is created with the arguments
-    Cron cronNull = new Cron(nullArgs);
-    Cron cronStrings = new Cron(stringInput);
-    Cron cronTooSmall = new Cron(tooSmall);
-    Cron cronTooLarge = new Cron(tooLarge);
-    Cron cronTooFew = new Cron(tooFew);
-    Cron cronTooMany = new Cron(tooMany);
+    // An IllegalStateException should be thrown
+  }
 
-    // Then the cron should throw an exception
+  @Test
+  public void testTooManyArguments() {
+    // Given too few arguments are given to create a cron job
+    String[] tooMany = {"1", "1", "1", "1", "1", "cmd", "cmd2"};
+
+    // When the cron is created
+    Cron cron = new Cron(tooMany);
+
+    // Then the cron should be built, and the extra argument is ignored
+    assertThat("Minutes don't match", cron.getMinutes(), is("1"));
+    assertThat("Hours don't match", cron.getHours(), is("1"));
+    assertThat("Day of month don't match", cron.getDayOfMonths(), is("1"));
+    assertThat("Months don't match", cron.getMonths(), is("1"));
+    assertThat("Day of week don't match", cron.getDaysOfWeek(), is("1"));
+    assertThat("Command doesn't match", cron.getCommand(), is("cmd"));
   }
 
   @Test
