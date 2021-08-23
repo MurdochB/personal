@@ -8,6 +8,24 @@ import org.junit.Test;
 public class CronTest {
 
   @Test
+  public void testWithAYearField() {
+    // Given a set of arguments for a cron, that are valid and include a year
+    String[] validArguments = {"1", "1", "1", "1", "1", "2021", "cmd"};
+
+    // When a cron is created with the arguments
+    Cron cron = new Cron(validArguments);
+
+    // Then the cron should have the expected values
+    assertThat("Minutes don't match", cron.getMinutes(), is("1"));
+    assertThat("Hours don't match", cron.getHours(), is("1"));
+    assertThat("Day of month don't match", cron.getDayOfMonths(), is("1"));
+    assertThat("Months don't match", cron.getMonths(), is("1"));
+    assertThat("Day of week don't match", cron.getDaysOfWeek(), is("1"));
+    assertThat("Day of week don't match", cron.getYears(), is("2021"));
+    assertThat("Command doesn't match", cron.getCommand(), is("cmd"));
+  }
+
+  @Test
   public void testValidArgumentsAreParsed() {
     // Given a set of arguments for a cron are valid
     String[] validArguments = {"1", "1", "1", "1", "1", "cmd"};
@@ -83,9 +101,11 @@ public class CronTest {
   public void testTooManyArguments() {
     // Given too few arguments are given to create a cron job
     String[] tooMany = {"1", "1", "1", "1", "1", "cmd", "cmd2"};
+    String[] tooManyWithYear = {"1", "1", "1", "1", "1", "2021", "cmd", "cmd2"};
 
     // When the cron is created
     Cron cron = new Cron(tooMany);
+    Cron cronWithYear = new Cron(tooManyWithYear);
 
     // Then the cron should be built, and the extra argument is ignored
     assertThat("Minutes don't match", cron.getMinutes(), is("1"));
@@ -93,7 +113,10 @@ public class CronTest {
     assertThat("Day of month don't match", cron.getDayOfMonths(), is("1"));
     assertThat("Months don't match", cron.getMonths(), is("1"));
     assertThat("Day of week don't match", cron.getDaysOfWeek(), is("1"));
-    assertThat("Command doesn't match", cron.getCommand(), is("cmd"));
+    assertThat("Year isn't blank", cron.getYears(), is(""));
+    assertThat("Command doesn't match", cron.getCommand(), is("cmd cmd2"));
+
+    assertThat("Year doesn't match", cronWithYear.getYears(), is("2021"));
   }
 
   @Test

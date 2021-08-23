@@ -3,7 +3,10 @@ package roo;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 public class Cron {
@@ -20,18 +23,22 @@ public class Cron {
   private static final int MONTH_MAX = 12;
   private static final int DAY_OF_WEEK_MIN = 1;
   private static final int DAY_OF_WEEK_MAX = 7;
+  private static final int YEAR_MIN = 1970;
+  private static final int YEAR_MAX = 2200;
 
   private static final String ALL_DIGITS = "\\*";
   private static final String SINGLE_DIGIT = "[0-9]+";
   private static final String COMMA_SEP_DIGITS = "[0-9]+(,[0-9]+)+";
   private static final String RANGE_DIGITS = "[0-9]+-[0-9]+";
   private static final String SLASHED_DIGITS = "([0-9]+|\\*)/[0-9]+";
+  private static final String IS_ANY = "[\\d*]+";
 
   private String minute;
   private String hour;
   private String dayOfMonth;
   private String month;
   private String dayOfWeek;
+  private String year;
   private String command;
 
   public Cron(String[] args) {
@@ -45,7 +52,27 @@ public class Cron {
     dayOfMonth = args[2];
     month = args[3];
     dayOfWeek = args[4];
-    command = args[5];
+    // optional year arg
+    year = args[5];
+    if (isThisAYearArg(year)) {
+      // get the command args next
+      command = createCommand(args, 6);
+    } else {
+      command = createCommand(args, 5);
+    }
+  }
+
+  private String createCommand(String[] args, int indexToStart){
+    StringBuilder sb = new StringBuilder();
+    for (int i = indexToStart; i < args.length; i++) {
+      sb.append(args[i]);
+      sb.append(" ");
+    }
+    return sb.toString().trim();
+  }
+
+  private boolean isThisAYearArg(String arg) {
+    return arg.matches(IS_ANY);
   }
 
   public String getMinutes() {
@@ -65,7 +92,13 @@ public class Cron {
   }
 
   public String getDaysOfWeek() {
-    return parseInput(dayOfWeek, DAY_OF_WEEK_MIN, DAY_OF_WEEK_MAX);
+    // MON TUE WED THU FRI SAT SUN
+    Map<String, Integer> daysOfTheWeek = Map.of("MON", 1, "TUE", 2, "WED", 3, "THU", 4, "FRI", 5, "SAT", 6, "SUN", 7);
+    return parseInput(dayOfWeek, DAY_OF_WEEK_MIN, DAY_OF_WEEK_MAX, daysOfTheWeek);
+  }
+
+  public String getYears() {
+    return parseInput(year, YEAR_MIN, YEAR_MAX);
   }
 
   public String getCommand() {
@@ -78,6 +111,7 @@ public class Cron {
     System.out.println(String.format(TABLE_FORMAT, "day of month", getDayOfMonths()));
     System.out.println(String.format(TABLE_FORMAT, "month", getMonths()));
     System.out.println(String.format(TABLE_FORMAT, "day of week", getDaysOfWeek()));
+    System.out.println(String.format(TABLE_FORMAT, "year", getYears()));
     System.out.println(String.format(TABLE_FORMAT, "command", getCommand()));
   }
 
@@ -86,8 +120,7 @@ public class Cron {
       return validateArgument(args[0], MINUTE_MIN, MINUTE_MAX) &&
           validateArgument(args[1], HOUR_MIN, HOUR_MAX) &&
           validateArgument(args[2], DAY_OF_MONTH_MIN, DAY_OF_MONTH_MAX) &&
-          validateArgument(args[3], MONTH_MIN, MONTH_MAX) &&
-          validateArgument(args[4], DAY_OF_WEEK_MIN, DAY_OF_WEEK_MAX);
+          validateArgument(args[3], MONTH_MIN, MONTH_MAX);
     }
     return false;
   }
@@ -113,7 +146,14 @@ public class Cron {
   }
 
   private String parseInput(String input, int min, int max) {
+    return parseInput(input, min, max, Collections.emptyMap());
+  }
+
+  private String parseInput(String input, int min, int max, Map<String, Integer> replacements) {
     List<Integer> values = new ArrayList<>();
+    for (Entry<String, Integer> entry : replacements.entrySet()) {
+      input = input.replace(entry.getKey(), String.valueOf(entry.getValue()));
+    }
 
     if (input.matches(ALL_DIGITS)) {
       values.addAll(getAllValues(min, max));
